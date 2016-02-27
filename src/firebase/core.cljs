@@ -7,7 +7,6 @@
 
 ;; nodejs support?
 
-
 ;; ----------------------------------------------------------------------------
 ;; ref creation/navigation
 
@@ -21,13 +20,7 @@
   (.push r))
 
 (defn child [r & args]
-  (reduce
-    (fn [acc c]
-      (.child acc
-        (cond
-          (keyword? c) (name c)
-          :else c)))
-    r args))
+  (reduce (fn [acc c] (.child acc (if (keyword? c) (name c) c))) r args))
 
 (defn parent [r]
   (.parent r))

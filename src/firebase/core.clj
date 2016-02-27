@@ -29,20 +29,13 @@
   (.push r))
 
 (defn child [r & args]
-  (reduce
-    (fn [acc c]
-      (.child acc
-        (cond
-          (keyword? c) (name c)
-          :else c)))
-    r args))
+  (reduce (fn [acc c] (.child acc (if (keyword? c) (name c) c))) r args))
 
 (defn parent [r]
   (.getParent r))
 
 (defn root [r]
   (.getRoot r))
-
 
 ;; ----------------------------------------------------------------------------
 ;; mutations
@@ -125,9 +118,6 @@
 
 (def off-child-added el-off)
 
-;; todo child-changed child-moved child-removed
-
-
 ;; ----------------------------------------------------------------------------
 ;; snapshots
 
@@ -151,8 +141,6 @@
 
 (defn val [ss]
   (-> ss .getValue ->clj))
-
-
 
 ;; ----------------------------------------------------------------------------
 ;; authentication

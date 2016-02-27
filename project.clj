@@ -10,4 +10,4 @@
                  [org.clojure/clojurescript "1.7.228" :scope "provided"]
                  [com.firebase/firebase-client-jvm "2.5.2"]
                  [com.firebase/firebase-token-generator "2.0.0"]
-                 [cljsjs/firebase "2.3.1-0"]])
+                 [cljsjs/firebase "2.4.1-0"]])
