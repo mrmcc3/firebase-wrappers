@@ -97,21 +97,24 @@
 (defn- xform-auth-cb [cb]
   #(cb %1 (xform-auth %2)))
 
-(defn auth [r {:keys [token anonymous password oauth options]} cb]
-  (let [opts (if options (clj->js options) #js {})]
-    (cond
-      token
-      (if (string? token)
-        (.authWithCustomToken r token (xform-auth-cb cb) opts)
-        (.error js/console "map form for generating tokens not supported"))
-      password
-      (.authWithPassword r (clj->js password) (xform-auth-cb cb) opts)
-      anonymous
-      (.authAnonymously r (xform-auth-cb cb) opts)
-      oauth
-      (.warn js/console "oauth wrapper not implimented yet")
-      :else
-      (.warn js/console "no auth mechanism provided"))))
+(defn auth
+  ([r creds]
+   (auth r creds (fn [_ _])))
+  ([r {:keys [token anonymous password oauth options]} cb]
+   (let [opts (if options (clj->js options) #js {})]
+     (cond
+       token
+       (if (string? token)
+         (.authWithCustomToken r token (xform-auth-cb cb) opts)
+         (.error js/console "map form for generating tokens not supported"))
+       password
+       (.authWithPassword r (clj->js password) (xform-auth-cb cb) opts)
+       anonymous
+       (.authAnonymously r (xform-auth-cb cb) opts)
+       oauth
+       (.warn js/console "oauth wrapper not implimented yet")
+       :else
+       (.warn js/console "no auth mechanism provided")))))
 
 (defn get-auth [r]
   (js->clj (.getAuth r) :keywordize-keys true))

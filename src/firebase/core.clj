@@ -193,19 +193,21 @@
       (walk/stringify-keys (core/update payload :provider update-fn))
       (map->token-options options))))
 
-(defn auth [r {:keys [token anonymous password oauth]} cb]
-  {:pre [(or token anonymous password oauth)]}
-  (cond
-    token
-    (let [t (if (string? token) token (gen-token token))]
-      (.authWithCustomToken r t (auth-cb->el cb)))
-    password
-    (let [{:keys [email password]} password]
-      (.authWithPassword r email password (auth-cb->el cb)))
-    anonymous
-    (.authAnonymously r (auth-cb->el cb))
-    oauth
-    (println "not impl. yet")))
+(defn auth
+  ([r creds]
+   (auth r creds (fn [_ _])))
+  ([r {:keys [token anonymous password oauth]} cb]
+   (cond
+     token
+     (let [t (if (string? token) token (gen-token token))]
+       (.authWithCustomToken r t (auth-cb->el cb)))
+     password
+     (let [{:keys [email password]} password]
+       (.authWithPassword r email password (auth-cb->el cb)))
+     anonymous
+     (.authAnonymously r (auth-cb->el cb))
+     oauth
+     (println "not impl. yet"))))
 
 (defn get-auth [r]
   (when-let [auth-data (.getAuth r)]
