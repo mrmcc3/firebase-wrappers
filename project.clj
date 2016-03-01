@@ -1,4 +1,4 @@
-(defproject mrmcc3/firebase-clj "0.1.0"
+(defproject mrmcc3/firebase-clj "0.1.1-SNAPSHOT"
   :description "Minimalist Clojure[Script] Firebase Wrapper"
   :url "http://github.com/mrmcc3/firebase-clj"
   :license {:name "Eclipse Public License"
