@@ -90,9 +90,10 @@
   (.unauth r))
 
 (defn xform-auth [raw-auth]
-  (-> raw-auth
-      (js->clj :keywordize-keys true)
-      (core/update :provider keyword)))
+  (when raw-auth
+    (-> raw-auth
+        (js->clj :keywordize-keys true)
+        (core/update :provider keyword))))
 
 (defn- xform-auth-cb [cb]
   #(cb %1 (xform-auth %2)))
