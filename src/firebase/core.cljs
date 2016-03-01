@@ -89,10 +89,13 @@
 (defn unauth [r]
   (.unauth r))
 
+(defn xform-auth [raw-auth]
+  (-> raw-auth
+      (js->clj :keywordize-keys true)
+      (core/update :provider keyword)))
+
 (defn- xform-auth-cb [cb]
-  (fn [err raw-auth]
-    (let [auth (js->clj raw-auth :keywordize-keys true)]
-      (cb err (core/update auth :provider keyword)))))
+  #(cb %1 (xform-auth %2)))
 
 (defn auth [r {:keys [token anonymous password oauth options]} cb]
   (let [opts (if options (clj->js options) #js {})]
@@ -109,4 +112,13 @@
       (.warn js/console "oauth wrapper not implimented yet")
       :else
       (.warn js/console "no auth mechanism provided"))))
+
+(defn get-auth [r]
+  (js->clj (.getAuth r) :keywordize-keys true))
+
+(defn on-auth [r cb]
+  (.onAuth r #(cb (xform-auth %))))
+
+(defn off-auth [r cb]
+  (.offAuth r cb))
 

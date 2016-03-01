@@ -5,9 +5,11 @@
   (:import [com.firebase.client
             Firebase$CompletionListener
             Firebase$AuthResultHandler
+            Firebase$AuthStateListener
             ValueEventListener
             ChildEventListener
-            Firebase]
+            Firebase
+            AuthData]
            [com.firebase.security.token
             TokenGenerator
             TokenOptions]
@@ -19,6 +21,8 @@
 ;; ----------------------------------------------------------------------------
 ;; ref creation/navigation
 
+
+;; make this work with datasnapshots
 (defn ref [s]
   (Firebase. s))
 
@@ -148,17 +152,20 @@
 (defn unauth [r]
   (.unauth r))
 
-(defn- auth-cb->el [cb]
+(defn xform-auth [auth-data]
+  (let [provider (keyword (.getProvider auth-data))]
+    {:uid      (.getUid auth-data)
+     :provider provider
+     :token    (.getToken auth-data)
+     :auth     (clojure.core/update
+                 (->clj (.getAuth auth-data)) :provider keyword)
+     :expires  (.getExpires auth-data)
+     provider  (->clj (.getProviderData auth-data))}))
+
+(defn auth-cb->el [cb]
   (reify Firebase$AuthResultHandler
-    (onAuthenticated [_ data]
-      (let [provider (keyword (.getProvider data))]
-        (cb nil {:uid      (.getUid data)
-                 :provider provider
-                 :token    (.getToken data)
-                 :auth     (clojure.core/update
-                             (->clj (.getAuth data)) :provider keyword)
-                 :expires  (.getExpires data)
-                 provider  (->clj (.getProviderData data))})))
+    (onAuthenticated [_ auth-data]
+      (cb nil (xform-auth auth-data)))
     (onAuthenticationError [_ err]
       (cb err nil))))
 
@@ -199,4 +206,20 @@
     (.authAnonymously r (auth-cb->el cb))
     oauth
     (println "not impl. yet")))
+
+(defn get-auth [r]
+  (when-let [auth-data (.getAuth r)]
+    (xform-auth auth-data)))
+
+(defn on-auth-cb->el [cb]
+  (reify Firebase$AuthStateListener
+    (onAuthStateChanged [_ auth-data]
+      (cb (when auth-data (xform-auth auth-data))))))
+
+(defn on-auth [r cb]
+  (.addAuthStateListener r (on-auth-cb->el cb)))
+
+(defn off-auth [r el]
+  (.removeAuthStateListener r el))
+
 
