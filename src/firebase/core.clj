@@ -10,7 +10,8 @@
             ChildEventListener
             Firebase
             OnDisconnect
-            FirebaseError DataSnapshot AuthData]
+            FirebaseError DataSnapshot AuthData
+            ServerValue]
            [com.firebase.security.token
             TokenGenerator
             TokenOptions]
@@ -44,6 +45,8 @@
 
 (defn on-disconnect [r]
   (.onDisconnect r))
+
+(def server-timestamp ServerValue/TIMESTAMP)
 
 ;; ----------------------------------------------------------------------------
 ;; mutations
