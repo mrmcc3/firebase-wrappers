@@ -16,3 +16,9 @@ vanilla firebase objects
 - implement complete firebase api
 - docs/docstrings
 - tests
+
+#### Keyword/String Keys?
+
+- when persisting maps keyword **keys** are automatically converted to strings
+- when retrieving maps string **keys** are automatically converted to keywords
+- the library does no other serialization and just hands off to the firebase impl.
