@@ -1,20 +1,14 @@
 (ns firebase.core
   (:refer-clojure :exclude [ref set update key val])
   (:require [clojure.walk :as walk]
-            [clojure.core :as core])
+            [clojure.string :as str])
   (:import [com.firebase.client
-            Firebase$CompletionListener
-            Firebase$AuthResultHandler
-            Firebase$AuthStateListener
-            ValueEventListener
-            ChildEventListener
-            Firebase
-            OnDisconnect
-            FirebaseError DataSnapshot AuthData
-            ServerValue]
-           [com.firebase.security.token
-            TokenGenerator
-            TokenOptions]
+            Firebase$CompletionListener Firebase$AuthResultHandler Firebase$AuthStateListener
+            ValueEventListener ChildEventListener
+            Firebase FirebaseError DataSnapshot AuthData
+            OnDisconnect ServerValue
+            Logger Logger$Level]
+           [com.firebase.security.token TokenGenerator TokenOptions]
            [java.time LocalDateTime ZoneId]
            [java.util Date Map List]))
 
@@ -180,3 +174,17 @@
 
 (defn unauth [r]
   (.unauth r))
+
+;; ----------------------------------------------------------------------------
+;; config
+
+;; !! config mutations will throw unless they are made before creating any refs
+
+(defn set-log-fn! [log-fn]
+  (doto (Firebase/getDefaultConfig)
+    (.setLogger
+      (reify Logger
+        (getLogLevel [_] Logger$Level/INFO)
+        (onLogMessage [_ level tag msg timestamp]
+          (let [lvl (-> level .toString str/lower-case keyword)]
+            (log-fn lvl tag msg timestamp)))))))
