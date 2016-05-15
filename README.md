@@ -4,6 +4,8 @@ Minimalist Clojure[Script] Firebase Wrapper.
 
 Work in progress.
 
+[![Clojars Project](https://img.shields.io/clojars/v/mrmcc3/firebase-clj.svg)](https://clojars.org/mrmcc3/firebase-clj)
+
 #### Goals
 
 - avoid complicated wrappers where possible. prefer operations on
