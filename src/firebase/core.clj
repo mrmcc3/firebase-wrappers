@@ -1,26 +1,58 @@
 (ns firebase.core
-  (:refer-clojure :exclude [ref set update key val])
-  (:require [clojure.walk :as walk]
-            [clojure.string :as str])
-  (:import [com.firebase.client
-            Firebase$CompletionListener Firebase$AuthResultHandler Firebase$AuthStateListener
-            ValueEventListener ChildEventListener
-            Firebase FirebaseError DataSnapshot AuthData
-            OnDisconnect ServerValue
-            Logger Logger$Level]
-           [com.firebase.security.token TokenGenerator TokenOptions]
-           [java.time LocalDateTime ZoneId]
-           [java.util Date Map List]))
+  (:refer-clojure :exclude [ref set get update key val])
+  (:require [clojure.walk :as walk])
+  (:import
+    [com.google.firebase FirebaseApp FirebaseOptions$Builder FirebaseOptions]
+    [com.google.firebase.database
+     FirebaseDatabase DatabaseReference Query DataSnapshot DatabaseError
+     DatabaseReference$CompletionListener ValueEventListener ChildEventListener
+     OnDisconnect ServerValue]
+    [java.util Map List]
+    [java.io InputStream]))
 
-;; WIP minimal clojure wrapper for firebase JVM client library
+;; ----------------------------------------------------------------------------
+;; firebase app initialization
+
+(defn ^FirebaseOptions$Builder options-builder
+  [^String url ^InputStream json auth]
+  (-> (FirebaseOptions$Builder.)
+      (.setServiceAccount json)
+      (.setDatabaseUrl url)
+      (.setDatabaseAuthVariableOverride (walk/stringify-keys auth))))
+
+(defn ^FirebaseOptions options
+  ([^String url ^InputStream json]
+   (options url json {}))
+  ([^String url ^InputStream json auth]
+   (.build (options-builder url json auth))))
+
+(defn ^FirebaseApp init-app
+  ([^FirebaseOptions options]
+   (FirebaseApp/initializeApp options))
+  ([^FirebaseOptions options ^String name]
+   (FirebaseApp/initializeApp options name)))
+
+(defn ^FirebaseApp get-app
+  ([] (FirebaseApp/getInstance))
+  ([^String name] (FirebaseApp/getInstance name)))
+
+(defn ^FirebaseDatabase get-db
+  ([] (FirebaseDatabase/getInstance))
+  ([^String name] (FirebaseDatabase/getInstance (get-app name))))
 
 ;; ----------------------------------------------------------------------------
 ;; ref creation/navigation
 
-(defn ref [o]
-  (if (string? o)
-    (Firebase. o)
-    (.getRef o)))
+(defprotocol IRef
+  (ref [o]))
+
+(extend-protocol IRef
+  FirebaseDatabase
+  (ref [db] (.getReference db))
+  DataSnapshot
+  (ref [ss] (.getRef ss))
+  Query
+  (ref [q] (.getRef q)))
 
 (defn key [r]
   (.getKey r))
@@ -46,11 +78,11 @@
 ;; mutations
 
 (defn error? [x]
-  (instance? FirebaseError x))
+  (instance? DatabaseError x))
 
 (defn completion-listener [prom]
-  (reify Firebase$CompletionListener
-    (^void onComplete [_ ^FirebaseError err ^Firebase _]
+  (reify DatabaseReference$CompletionListener
+    (^void onComplete [_ ^DatabaseError err ^DatabaseReference _]
       (deliver prom err))))
 
 (defn set [o val]
@@ -95,7 +127,7 @@
   ([cb cbe]
    (reify ValueEventListener
      (^void onDataChange [_ ^DataSnapshot ss] (cb ss))
-     (^void onCancelled [_ ^FirebaseError err] (when cbe (cbe err))))))
+     (^void onCancelled [_ ^DatabaseError err] (when cbe (cbe err))))))
 
 (defn child-listener [{:keys [added changed moved removed error]}]
   (reify ChildEventListener
@@ -103,88 +135,18 @@
     (^void onChildChanged [_ ^DataSnapshot ss ^String _] (when changed (changed ss)))
     (^void onChildMoved [_ ^DataSnapshot ss ^String _] (when moved (moved ss)))
     (^void onChildRemoved [_ ^DataSnapshot ss] (when removed (removed ss)))
-    (^void onCancelled [_ ^FirebaseError err] (when error (error err)))))
-
-(defn auth-listener [cb]
-  (reify Firebase$AuthStateListener
-    (^void onAuthStateChanged [_ ^AuthData d] (cb d))))
+    (^void onCancelled [_ ^DatabaseError err] (when error (error err)))))
 
 (defn add-listener [r el]
   (cond
     (instance? ValueEventListener el) (.addValueEventListener r el)
-    (instance? ChildEventListener el) (.addChildEventListener r el)
-    (instance? Firebase$AuthStateListener el) (.addAuthStateListener r el)))
+    (instance? ChildEventListener el) (.addChildEventListener r el)))
 
 (defn remove-listener [r el]
-  (cond
-    (instance? Firebase$AuthStateListener el) (.removeAuthStateListener r el)
-    :else (.removeEventListener r el)))
+  (.removeEventListener r el))
 
-(defn get-value [r]
+(defn get [r]
   (let [prom (promise)
         cb #(deliver prom %)]
     (.addListenerForSingleValueEvent r (value-listener cb cb))
     prom))
-
-;; ----------------------------------------------------------------------------
-;; token generation
-
-(defn offset-now [days]
-  (-> (LocalDateTime/now)
-      (.plusDays days)
-      (.atZone (ZoneId/systemDefault))
-      .toInstant
-      Date/from))
-
-(defn map->token-options [{:keys [expire-in-days active-in-days admin]}]
-  (let [opts (TokenOptions.)]
-    (when expire-in-days (.setExpires opts (offset-now expire-in-days)))
-    (when active-in-days (.setNotBefore opts (offset-now active-in-days)))
-    (when admin (.setAdmin opts true))
-    opts))
-
-(defn gen-token [secret payload options]
-  (.createToken (TokenGenerator. secret)
-                (walk/stringify-keys payload)
-                (map->token-options options)))
-
-;; ----------------------------------------------------------------------------
-;; authentication
-
-(defn auth-handler [prom]
-  (reify Firebase$AuthResultHandler
-    (^void onAuthenticated [_ ^AuthData d] (deliver prom d))
-    (^void onAuthenticationError [_ ^FirebaseError err] (deliver prom err))))
-
-(defn auth->map [data]
-  {:uid           (.getUid data)
-   :provider      (.getProvider data)
-   :token         (.getToken data)
-   :auth          (->clj (.getAuth data))
-   :expires       (.getExpires data)
-   :provider-data (->clj (.getProviderData data))})
-
-(defn auth-token [r tok]
-  (let [prom (promise)]
-    (.authWithCustomToken r tok (auth-handler prom))
-    prom))
-
-(defn get-auth [r]
-  (.getAuth r))
-
-(defn unauth [r]
-  (.unauth r))
-
-;; ----------------------------------------------------------------------------
-;; config
-
-;; !! config mutations will throw unless they are made before creating any refs
-
-(defn set-log-fn! [log-fn]
-  (doto (Firebase/getDefaultConfig)
-    (.setLogger
-      (reify Logger
-        (getLogLevel [_] Logger$Level/INFO)
-        (onLogMessage [_ level tag msg timestamp]
-          (let [lvl (-> level .toString str/lower-case keyword)]
-            (log-fn lvl tag msg timestamp)))))))
