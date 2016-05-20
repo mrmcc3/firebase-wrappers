@@ -1,0 +1,10 @@
+{:cljs     {:source-paths ["dev" "src"]
+            :compiler     {:main          "firebase.dev"
+                           :asset-path    #profile {:dev "compiled-js"}
+                           :output-to     "dev-resources/public/compiled-js/core.js"
+                           :output-dir    #profile {:dev  "dev-resources/public/compiled-js"
+                                                    :dist "target/public/compiled-js"}
+                           :optimizations #profile {:dist :advanced}
+                           :parallel-build #profile {:dist true}}}
+ :figwheel {:autobuild #profile {:dev true}}
+ :secrets  #include "secrets.edn"}

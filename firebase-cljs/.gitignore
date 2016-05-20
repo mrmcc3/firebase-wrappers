@@ -1,7 +1,8 @@
 .DS_Store
 compiled-js
-/target
-/node_modules
+target
+node_modules
+
 /dev
 pom.xml
 
@@ -11,3 +12,5 @@ pom.xml
 *.log
 .lein-*
 .nrepl-*
+
+secrets.edn
