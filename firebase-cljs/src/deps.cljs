@@ -1,0 +1,1 @@
+{:externs ["firebase/externs.js"]}
