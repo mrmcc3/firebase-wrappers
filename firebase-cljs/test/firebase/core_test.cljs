@@ -40,16 +40,4 @@
     (is (= (.-uid user) uid))
     (is (string? (.-refreshToken user)))))
 
-(deftest update-profile
-  (async done
-    (let [{:keys [display-name photo-url]} user-cfg
-          user (-> app .auth .-currentUser)]
-      (.then
-        (.updateProfile user #js {:displayName display-name
-                                  :photoURL    photo-url})
-        (fn []
-          (is (= (.-displayName user) display-name))
-          (is (= (.-photoURL user) photo-url))
-          (done))))))
-
 (run-tests)
