@@ -1,0 +1,9 @@
+{:cljs     {:source-paths ["src" "test"]
+            :compiler     {:main           "firebase.core-test"
+                           :asset-path     #profile {:dev "compiled-js"}
+                           :output-to      "test-resources/public/compiled-js/core.js"
+                           :output-dir     "test-resources/public/compiled-js"
+                           :optimizations  #profile {:dist :advanced}
+                           :parallel-build #profile {:dist true}}}
+ :figwheel {:autobuild #profile {:dev true}}
+ :secrets  #include "secrets.edn"}
