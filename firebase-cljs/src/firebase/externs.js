@@ -104,3 +104,17 @@ reference.startAt = function(value, key) {};
 reference.toString = function() {};
 reference.transaction = function(transactionUpdate, onComplete, applyLocally) {};
 reference.update = function(objectToMerge, onComplete) {};
+
+// --------------------------------------------------------------------------------
+// DataSnapshot -> https://firebase.google.com/docs/reference/js/firebase.database.DataSnapshot
+var snapshot = {};
+snapshot.key = "";
+snapshot.ref = {};
+snapshot.child = function(path) {};
+snapshot.exists = function() {};
+snapshot.forEach = function(action) {};
+snapshot.getPriority = function() {};
+snapshot.hasChild = function(path) {};
+snapshot.hasChildren = function() {};
+snapshot.numChildren = function() {};
+snapshot.val = function() {};
