@@ -1,18 +1,36 @@
 /*! Externs for firebase.js v3.0 */
 
-// --------------------------------------------------------------------------------
-// https://firebase.google.com/docs/reference/js/firebase
+// firebase
 window.firebase = {};
-window.firebase.app = function(name) {};
-window.firebase.auth = function(name) {};
-window.firebase.database = function(name) {};
-window.firebase.storage = function(name) {};
 window.firebase.apps = [];
 window.firebase.SDK_VERSION = "";
 window.firebase.initializeApp = function(name) {};
 
-// --------------------------------------------------------------------------------
-// App -> https://firebase.google.com/docs/reference/js/firebase.app.App
+// firebase.app
+window.firebase.app = function(name) {};
+
+// firebase.auth
+window.firebase.auth = function(name) {};
+
+// firebase.database
+window.firebase.database = function(name) {};
+// window.firebase.database.SDK_VERSION = "";
+window.firebase.database.ServerValue = {};
+window.firebase.database.ServerValue.TIMESTAMP = {};
+window.firebase.database.enableLogging = function(logger, persistent) {};
+
+// firebase.storage
+window.firebase.storage = function(name) {};
+window.firebase.storage.TaskEvent = {};
+window.firebase.storage.TaskEvent.STATE_CHANGED = "";
+window.firebase.storage.TaskState = {};
+window.firebase.storage.TaskState.RUNNING = "";
+window.firebase.storage.TaskState.PAUSED = "";
+window.firebase.storage.TaskState.SUCCESS = "";
+window.firebase.storage.TaskState.CANCELED = "";
+window.firebase.storage.TaskState.ERROR = "";
+
+// firebase.app.App
 var app = {};
 app.name = "";
 app.options = {};
@@ -21,8 +39,7 @@ app.database = function() {};
 app.delete = function() {};
 app.storage = function() {};
 
-// --------------------------------------------------------------------------------
-// Auth -> https://firebase.google.com/docs/reference/js/firebase.auth.Auth
+// firebase.auth.Auth
 var auth = {};
 auth.app = {};
 auth.currentUser = null;
@@ -42,18 +59,39 @@ auth.signInWithRedirect = function(provider) {};
 auth.signOut = function() {};
 auth.verifyPasswordResetCode = function(code) {};
 
-// --------------------------------------------------------------------------------
-// User -> https://firebase.google.com/docs/reference/js/firebase.User
+// firebase.database.Database
+var database = {};
+database.app = {};
+database.ref = function(path) {};
+database.refFromURL = function(url) {};
+database.goOffline = function() {};
+database.goOnline = function() {};
+
+// firebase.storage.Storage
+var storage = {};
+storage.app = {};
+storage.maxOperationRetryTime = 0;
+storage.maxUploadRetryTime = 0;
+storage.ref = function(path) {};
+storage.refFromURL = function(url) {};
+storage.setMaxOperationRetryTime = function(time) {};
+storage.setMaxUploadRetryTime = function(time) {};
+
+
+// firebase.UserInfo
+var userInfo = {};
+userInfo.displayName = null;
+userInfo.email = null;
+userInfo.photoURL = null;
+userInfo.providerId = null;
+userInfo.uid = null;
+
+// firebase.User
 var user = {};
-user.displayName = null;
-user.email = null;
 user.emailVerified = true;
 user.isAnonymous = true;
-user.photoURL = null;
 user.providerData = [];
-user.providerId = null;
 user.refreshToken = "";
-user.uid = null;
 user.delete = function() {};
 user.getToken = function(refresh) {};
 user.link = function(credential) {};
@@ -67,51 +105,71 @@ user.updateEmail = function(newEmail) {};
 user.updatePassword = function(newPassword) {};
 user.updateProfile = function(profile) {};
 
-// --------------------------------------------------------------------------------
-// Database -> https://firebase.google.com/docs/reference/js/firebase.database.Database
-var database = {};
-database.ref = function(path) {};
-database.refFromUrl = function(url) {};
-database.goOffline = function() {};
-database.goOnline = function() {};
+// firebase.auth.UserCredential
 
-// --------------------------------------------------------------------------------
-// Reference -> https://firebase.google.com/docs/reference/js/firebase.database.Reference
-var reference = {};
-reference.key = "";
-reference.parent = {};
-reference.root = {};
-reference.ref = {};
-reference.child = function(path) {};
-reference.endAt = function(value, key) {};
-reference.equalTo = function(value, key) {};
-reference.limitToFirst = function(limit) {};
-reference.limitToLast = function(limit) {};
-reference.off = function(eventType, callback, context) {};
-reference.on = function(eventType, callback, cancelCallbackOrContext, context) {};
-reference.once = function(eventType, userCallback) {};
-reference.onDisconnect = function() {};
-reference.orderByChild = function(path) {};
-reference.orderByKey = function() {};
-reference.orderByPriority = function() {};
-reference.orderByValue = function() {};
-reference.push = function(value, onComplete) {};
-reference.remove = function(onComplete) {};
-reference.set = function(newVal, onComplete) {};
-reference.setPriority = function(priority, onComplete) {};
-reference.setWithPriority = function(newVal, newPriority, onComplete) {};
-reference.startAt = function(value, key) {};
-reference.toString = function() {};
-reference.transaction = function(transactionUpdate, onComplete, applyLocally) {};
-reference.update = function(objectToMerge, onComplete) {};
+var userCredential = {};
+userCredential.user = {};
+userCredential.credential = {};
 
-// --------------------------------------------------------------------------------
-// DataSnapshot -> https://firebase.google.com/docs/reference/js/firebase.database.DataSnapshot
+// firebase.auth.AuthCredential
+var authCredential = {};
+authCredential.provider = "";
+
+// firebase.database.Query
+var databaseQuery = {};
+databaseQuery.ref = {};
+databaseQuery.endAt = function(value, key) {};
+databaseQuery.equalTo = function(value, key) {};
+databaseQuery.limitToFirst = function(limit) {};
+databaseQuery.limitToLast = function(limit) {};
+databaseQuery.off = function(eventType, callback, context) {};
+databaseQuery.on = function(eventType, callback, cancelCallbackOrContext, context) {};
+databaseQuery.once = function(eventType, userCallback) {};
+databaseQuery.orderByChild = function(path) {};
+databaseQuery.orderByKey = function() {};
+databaseQuery.orderByPriority = function() {};
+databaseQuery.orderByValue = function() {};
+databaseQuery.startAt = function(value, key) {};
+databaseQuery.toString = function() {};
+
+// firebase.database.Reference
+var databaseReference = {};
+databaseReference.key = "";
+databaseReference.parent = {};
+databaseReference.root = {};
+databaseReference.child = function(path) {};
+databaseReference.onDisconnect = function() {};
+databaseReference.push = function(value, onComplete) {};
+databaseReference.remove = function(onComplete) {};
+databaseReference.set = function(newVal, onComplete) {};
+databaseReference.setPriority = function(priority, onComplete) {};
+databaseReference.setWithPriority = function(newVal, newPriority, onComplete) {};
+databaseReference.transaction = function(transactionUpdate, onComplete, applyLocally) {};
+databaseReference.update = function(objectToMerge, onComplete) {};
+
+// firebase.storage.Reference
+var storageReference = {};
+storageReference.bucket = "";
+storageReference.fullPath = "";
+storageReference.name = "";
+storageReference.parent = {};
+storageReference.root = {};
+storageReference.storage = {};
+storageReference.child = function(path) {};
+storageReference.delete = function() {};
+storageReference.getDownloadURL = function() {};
+storageReference.getMetadata = function() {};
+storageReference.put = function(blob, metadata) {};
+storageReference.toString = function() {};
+storageReference.updateMetadata = function(metadata) {};
+
+// firebase.database.DataSnapshot
 var snapshot = {};
 snapshot.key = "";
 snapshot.ref = {};
 snapshot.child = function(path) {};
 snapshot.exists = function() {};
+snapshot.exportVal = function() {};
 snapshot.forEach = function(action) {};
 snapshot.getPriority = function() {};
 snapshot.hasChild = function(path) {};
