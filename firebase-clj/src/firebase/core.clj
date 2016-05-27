@@ -36,9 +36,8 @@
   ([] (FirebaseApp/getInstance))
   ([^String name] (FirebaseApp/getInstance name)))
 
-(defn ^FirebaseDatabase get-db
-  ([] (FirebaseDatabase/getInstance))
-  ([^String name] (FirebaseDatabase/getInstance (get-app name))))
+(defn ^FirebaseDatabase app->db [^FirebaseApp app]
+  (FirebaseDatabase/getInstance app))
 
 ;; ----------------------------------------------------------------------------
 ;; ref creation/navigation
