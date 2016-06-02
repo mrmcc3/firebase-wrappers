@@ -1,4 +1,5 @@
-(ns firebase.core)
+(ns firebase.core
+  (:refer-clojure :exclude [val]))
 
 (defn app
   ([cfg] (app cfg "[DEFAULT]"))
