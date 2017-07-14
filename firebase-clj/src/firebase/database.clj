@@ -1,43 +1,21 @@
-(ns firebase.core
+(ns firebase.database
   (:refer-clojure :exclude [ref set get update key val])
-  (:require [clojure.walk :as walk])
+  (:require
+    [clojure.walk :as walk])
   (:import
-    [com.google.firebase FirebaseApp FirebaseOptions$Builder FirebaseOptions]
-    [com.google.firebase.database
-     FirebaseDatabase DatabaseReference Query DataSnapshot DatabaseError
-     DatabaseReference$CompletionListener ValueEventListener ChildEventListener
-     OnDisconnect ServerValue]
-    [java.util Map List]
-    [java.io InputStream]))
-
-;; ----------------------------------------------------------------------------
-;; firebase app initialization
-
-(defn ^FirebaseOptions$Builder options-builder
-  [^String url ^InputStream json auth]
-  (-> (FirebaseOptions$Builder.)
-      (.setServiceAccount json)
-      (.setDatabaseUrl url)
-      (.setDatabaseAuthVariableOverride (walk/stringify-keys auth))))
-
-(defn ^FirebaseOptions options
-  ([^String url ^InputStream json]
-   (options url json {}))
-  ([^String url ^InputStream json auth]
-   (.build (options-builder url json auth))))
-
-(defn ^FirebaseApp init-app
-  ([^FirebaseOptions options]
-   (FirebaseApp/initializeApp options))
-  ([^FirebaseOptions options ^String name]
-   (FirebaseApp/initializeApp options name)))
-
-(defn ^FirebaseApp get-app
-  ([] (FirebaseApp/getInstance))
-  ([^String name] (FirebaseApp/getInstance name)))
-
-(defn ^FirebaseDatabase app->db [^FirebaseApp app]
-  (FirebaseDatabase/getInstance app))
+    (com.google.firebase FirebaseApp)
+    (com.google.firebase.database
+      FirebaseDatabase
+      DatabaseReference
+      Query
+      DataSnapshot
+      DatabaseError
+      DatabaseReference$CompletionListener
+      ValueEventListener
+      ChildEventListener
+      OnDisconnect
+      ServerValue)
+    (java.util Map List)))
 
 ;; ----------------------------------------------------------------------------
 ;; ref creation/navigation
@@ -46,6 +24,8 @@
   (ref [o]))
 
 (extend-protocol IRef
+  FirebaseApp
+  (ref [app] (ref (FirebaseDatabase/getInstance app)))
   FirebaseDatabase
   (ref [db] (.getReference db))
   DataSnapshot
@@ -112,7 +92,7 @@
   Map (->clj [o]
         (reduce
           (fn [m [^String k v]]
-            (assoc m (keyword k) (->clj v)))
+            (assoc m k (->clj v)))
           {} (.entrySet o))))
 
 (defn val [ss]
@@ -136,16 +116,20 @@
     (^void onChildRemoved [_ ^DataSnapshot ss] (when removed (removed ss)))
     (^void onCancelled [_ ^DatabaseError err] (when error (error err)))))
 
-(defn add-listener [r el]
-  (cond
-    (instance? ValueEventListener el) (.addValueEventListener r el)
-    (instance? ChildEventListener el) (.addChildEventListener r el)))
+(defn add-listener [r & listeners]
+  (doseq [el listeners]
+    (cond
+      (instance? ValueEventListener el) (.addValueEventListener r el)
+      (instance? ChildEventListener el) (.addChildEventListener r el))))
 
-(defn remove-listener [r el]
-  (.removeEventListener r el))
+(defn remove-listener [r & listeners]
+  (doseq [el listeners]
+    (.removeEventListener r el)))
 
 (defn get [r]
   (let [prom (promise)
         cb #(deliver prom %)]
     (.addListenerForSingleValueEvent r (value-listener cb cb))
     prom))
+
+

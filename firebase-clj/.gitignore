@@ -10,3 +10,5 @@ pom.xml
 .nrepl-*
 
 secrets.edn
+creds.json
+dev
